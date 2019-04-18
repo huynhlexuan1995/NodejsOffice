@@ -25,24 +25,58 @@ router.get('/', async function(req, res, next) {
     // Set end of the calendar view to 30 days from start
     const end = new Date(new Date(start).setDate(start.getDate() + 30));
 
+    var Request = require("request");
     try {
-      // Get the first 10 events for the coming week
-      const result = await client
-      .api(`/me/calendarView?startDateTime=${start.toISOString()}&endDateTime=${end.toISOString()}`)
-      .top(20)
-      .select('subject,start,end,attendees')
-      .orderby('start/dateTime DESC')
-      .get();
+      Request.post({
+          "headers": { "content-type": "application/json", "Authorization":"Bearer "+accessToken},
+          "url": "https://graph.microsoft.com/v1.0/me/findMeetingTimes",
+          "body": JSON.stringify({
+          "attendees": [
+            {
+              "emailAddress": {
+                "address": "huynh@fabbier.onmicrosoft.com",
+                "name": "Alex Darrow"
+              },
+              "type": "Required"
+            }
+          ],
+          "timeConstraint": {
+            "timeslots": [
+              {
+                "start": {
+                  "dateTime": "2019-04-18T08:06:15.339Z",
+                  "timeZone": "Pacific Standard Time"
+                },
+                "end": {
+                  "dateTime": "2019-04-25T08:06:15.339Z",
+                  "timeZone": "Pacific Standard Time"
+                }
+              }
+            ]
+          },
+          "locationConstraint": {
+            "isRequired": "false",
+            "suggestLocation": "true",
+            "locations": [
+              {
+                "displayName": "Conf Room 32/1368",
+                "locationEmailAddress": "conf32room1368@imgeek.onmicrosoft.com"
+              }
+            ]
+          },
+          "meetingDuration": "PT1H"
+        })
+      }, (error, response, body) => {
+          if(error) {
+              return console.dir(error);
+          }
+          console.dir(response);
+      });
 
-      parms.events = result.value;
-      res.render('calendar', parms);
-    } catch (err) {
-      parms.message = 'Error retrieving events';
-      parms.error = { status: `${err.code}: ${err.message}` };
-      parms.debug = JSON.stringify(err.body, null, 2);
-      res.render('error', parms);
+    } catch(e) {
+      console.log(e);
     }
-
+    
   } else {
     // Redirect to home
     res.redirect('/');

@@ -10,7 +10,6 @@ router.get('/', async function(req, res, next) {
   // If code is present, use it
   if (code) {
     let token;
-    console.log('==========Da co code ========');
     try {
       token = await authHelper.getTokenFromCode(code, res);
     } catch (error) {
@@ -21,7 +20,6 @@ router.get('/', async function(req, res, next) {
     res.redirect('/');
   } else {
     // Otherwise complain
-    console.log('==========Da co code ========');
     res.render('error', { title: 'Error', message: 'Authorization error', error: { status: 'Missing code parameter' } });
   }
 });
