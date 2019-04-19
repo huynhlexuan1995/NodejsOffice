@@ -20,63 +20,44 @@ router.get('/', async function(req, res, next) {
       }
     });
 
-    // Set start of the calendar view to today at midnight
-    const start = new Date(new Date().setHours(0,0,0));
-    // Set end of the calendar view to 30 days from start
-    const end = new Date(new Date(start).setDate(start.getDate() + 30));
-
-    var Request = require("request");
-    try {
-      Request.post({
-          "headers": { "content-type": "application/json", "Authorization":"Bearer "+accessToken},
-          "url": "https://graph.microsoft.com/v1.0/me/findMeetingTimes",
-          "body": JSON.stringify({
-          "attendees": [
-            {
-              "emailAddress": {
-                "address": "huynh@fabbier.onmicrosoft.com",
-                "name": "Alex Darrow"
-              },
-              "type": "Required"
-            }
-          ],
-          "timeConstraint": {
-            "timeslots": [
-              {
-                "start": {
-                  "dateTime": "2019-04-18T08:06:15.339Z",
-                  "timeZone": "Pacific Standard Time"
-                },
-                "end": {
-                  "dateTime": "2019-04-25T08:06:15.339Z",
-                  "timeZone": "Pacific Standard Time"
-                }
-              }
-            ]
-          },
-          "locationConstraint": {
-            "isRequired": "false",
-            "suggestLocation": "true",
-            "locations": [
-              {
-                "displayName": "Conf Room 32/1368",
-                "locationEmailAddress": "conf32room1368@imgeek.onmicrosoft.com"
-              }
-            ]
-          },
-          "meetingDuration": "PT1H"
-        })
-      }, (error, response, body) => {
-          if(error) {
-              return console.dir(error);
+    const event = {
+        subject : "Let's go for lunch",
+        body: {
+          contentType: "HTML",
+          content: "Does late morning work for you?"
+        },
+        start: {
+            dateTime: "2017-04-15T12:00:00",
+            timeZone: "Pacific Standard Time"
+        },
+        end: {
+            dateTime: "2017-04-15T14:00:00",
+            timeZone: "Pacific Standard Time"
+        },
+        location:{
+            displayName:"Harry's Bar"
+        },
+        attendees: [
+          {
+            emailAddress: {
+              address:"samanthab@contoso.onmicrosoft.com",
+              name: "Samantha Booth"
+            },
+            type: "required"
           }
-          console.dir(response);
-      });
+        ]
+      }
 
-    } catch(e) {
-      console.log(e);
+    try {
+      // Get the 10 newest messages from inbox
+      const result = await client.api('/me/events').header({"content-type" : "application/json","Authorization":"Bearer"+accessToken}).post({ calendar:event });
+      console.log(result);
+    } catch (err) {
+        parms.events = 'Error retrieving messages';
+        parms.error = { status: `${err.code}: ${err.events}` };
+        parms.debug = JSON.stringify(err.body, null, 2);
+        res.render('error', parms);
     }
-    
   } else {
     // Redirect to home
     res.redirect('/');

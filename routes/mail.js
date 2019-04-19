@@ -30,6 +30,7 @@ router.get('/', async function(req, res, next) {
       .get();
 
       parms.messages = result.value;
+      // console.log('==parms.messages===',parms);
       res.render('mail', parms);
     } catch (err) {
       parms.message = 'Error retrieving messages';
